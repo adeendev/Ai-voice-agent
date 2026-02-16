@@ -1,0 +1,51 @@
+# Vertiqx AI Calling Agent Requirements
+
+# Core dependencies for AI agent
+requests>=2.31.0  # For API communication
+python-dateutil>=2.8.2  # Date and time parsing
+google-generativeai>=0.3.0  # Google Gemini AI
+python-dotenv>=1.0.0  # Environment variable loading
+
+# Database (built-in)
+# sqlite3 - built-in with Python
+
+# Audio processing (optional for voice features)
+pyaudio>=0.2.11
+SpeechRecognition>=3.10.0
+pyttsx3>=2.90
+pydub>=0.25.1  # Audio format conversion
+pocketsphinx>=0.1.15  # Offline speech recognition fallback
+
+# Optional: Advanced STT/TTS
+# openai-whisper>=20231117  # For better offline STT
+# TTS>=0.22.0  # Coqui TTS for advanced text-to-speech
+
+# LLM Integration - Ollama (required)
+# Note: Ollama must be installed separately via CLI
+# ollama>=0.1.7  # Python client (optional)
+
+# Optional: Enhanced functionality
+colorama>=0.4.6  # Colored terminal output
+ujson>=5.8.0  # Faster JSON processing
+dateparser>=1.1.8  # Enhanced date parsing
+validators>=0.22.0  # Input validation
+pytz>=2023.3  # Timezone handling
+
+# Web API interface (optional)
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# Google Calendar Integration
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+google-api-python-client>=2.100.0
+
+# Development and testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.7.0  # Code formatting
+flake8>=6.0.0  # Code linting
+
+# Logging and utilities
+colorlog>=6.7.0
