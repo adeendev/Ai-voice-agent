@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import GoogleCalendar from './GoogleCalendar';
+import {
+  Waves, Server, Cpu, Mic, MicOff, Database, Check, Zap, Globe,
+  Building2, MessageSquare, CalendarDays, RotateCw, AlertTriangle,
+} from 'lucide-react';
 
 interface Message {
   id: string;
@@ -493,187 +497,200 @@ export default function VoiceAssistant({ backendUrl, autoStart = false }: VoiceA
   }, []);
 
   // Render system status page
-  const renderStatusPage = () => (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-8xl mb-4">🤖</div>
-          <h1 className="text-4xl font-bold text-white mb-2">Vertiqx AI Assistant</h1>
-          <p className="text-xl text-blue-200">Advanced Voice & Chat Interface</p>
-        </div>
+  // Render system status page
+  const renderStatusPage = () => {
+    const statusCards = [
+      {
+        label: 'API Server',
+        icon: Server,
+        ok: systemStatus.apiConnected,
+        value: systemStatus.apiConnected ? 'Connected' : 'Disconnected',
+        meta: systemStatus.responseTime ? systemStatus.responseTime + 'ms round trip' : 'localhost:8000',
+      },
+      {
+        label: 'AI Model',
+        icon: Cpu,
+        ok: true,
+        value: systemStatus.model,
+        meta: 'Ollama - runs locally',
+      },
+      {
+        label: 'Audio System',
+        icon: systemStatus.audioEnabled ? Mic : MicOff,
+        ok: systemStatus.audioEnabled,
+        value: systemStatus.audioEnabled ? 'Enabled' : 'Disabled',
+        meta: systemStatus.audioEnabled ? 'Mic and speaker ready' : 'Speech-to-text ' + systemStatus.sttStatus,
+      },
+      {
+        label: 'Database',
+        icon: Database,
+        ok: systemStatus.databaseConnected,
+        value: systemStatus.databaseConnected ? 'Connected' : 'Disconnected',
+        meta: 'SQLite - bookings.db',
+      },
+    ];
 
-        {/* System Status Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="glass-panel p-6 text-center">
-            <div className="text-3xl mb-3">
-              {systemStatus.apiConnected ? '🟢' : '🔴'}
+    const modes = [
+      {
+        id: 'chat' as const,
+        icon: MessageSquare,
+        title: 'Chat',
+        copy: 'Type a message and get a reply from the local model.',
+        meta: 'Text - instant',
+        disabled: false,
+      },
+      {
+        id: 'voice' as const,
+        icon: Mic,
+        title: 'Voice',
+        copy: 'Speak naturally and hear the answer read back to you.',
+        meta: 'Speech in - speech out',
+        disabled: !systemStatus.audioEnabled,
+      },
+      {
+        id: 'calendar' as const,
+        icon: CalendarDays,
+        title: 'Calendar',
+        copy: 'Review bookings and the Google Calendar sync.',
+        meta: 'Bookings - Google sync',
+        disabled: false,
+      },
+    ];
+
+    const footprint = [
+      { icon: Zap, label: 'Response time', value: aiCapabilities.responseTime },
+      { icon: Globe, label: 'Languages', value: aiCapabilities.languages.join(', ') },
+      { icon: Building2, label: 'Provider', value: aiCapabilities.provider },
+    ];
+
+    return (
+      <div className="relative min-h-screen overflow-hidden bg-[#07080d] px-6 py-12 text-white">
+        {/* Ambient light, rather than the old three-stop purple wash */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(60% 45% at 50% 0%, rgba(99,102,241,0.18), transparent 70%), radial-gradient(40% 35% at 85% 85%, rgba(14,165,233,0.10), transparent 70%)',
+          }}
+        />
+
+        <div className="relative mx-auto max-w-6xl">
+          {/* Header */}
+          <header className="mb-14 text-center">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+              <Waves size={24} strokeWidth={1.75} className="text-indigo-300" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">API Server</h3>
-            <p className={`text-sm ${systemStatus.apiConnected ? 'text-green-300' : 'text-red-300'}`}>
-              {systemStatus.apiConnected ? 'Connected' : 'Disconnected'}
-            </p>
-            {systemStatus.responseTime && (
-              <p className="text-xs text-gray-400 mt-1">{systemStatus.responseTime}ms</p>
-            )}
-          </div>
+            <h1 className="text-[2.75rem] font-semibold leading-none tracking-tight">Vertiqx AI Assistant</h1>
+            <p className="mt-3 text-sm text-white/45">Voice and chat booking agent, running on a local model</p>
+          </header>
 
-          <div className="glass-panel p-6 text-center">
-            <div className="text-3xl mb-3">🧠</div>
-            <h3 className="text-lg font-semibold text-white mb-2">AI Model</h3>
-            <p className="text-sm text-purple-300">{systemStatus.model}</p>
-            <p className="text-xs text-gray-400 mt-1">Ollama</p>
-          </div>
-
-          <div className="glass-panel p-6 text-center">
-            <div className="text-3xl mb-3">
-              {systemStatus.audioEnabled ? '🎤' : '🔇'}
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Audio System</h3>
-            <p className={`text-sm ${systemStatus.audioEnabled ? 'text-green-300' : 'text-yellow-300'}`}>
-              {systemStatus.audioEnabled ? 'Enabled' : 'Disabled'}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">STT: {systemStatus.sttStatus}</p>
-          </div>
-
-          <div className="glass-panel p-6 text-center">
-            <div className="text-3xl mb-3">
-              {systemStatus.databaseConnected ? '💾' : '❌'}
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Database</h3>
-            <p className={`text-sm ${systemStatus.databaseConnected ? 'text-green-300' : 'text-red-300'}`}>
-              {systemStatus.databaseConnected ? 'Connected' : 'Disconnected'}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">SQLite</p>
-          </div>
-        </div>
-
-        {/* AI Capabilities */}
-        <div className="glass-panel p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">🎯 AI Capabilities & Training</h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">🔧 Core Capabilities</h3>
-              <div className="space-y-2">
-                {aiCapabilities.capabilities.map((capability, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <span className="text-green-400">✅</span>
-                    <span className="text-gray-200">{capability}</span>
-                  </div>
-                ))}
+          {/* System status */}
+          <section className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {statusCards.map(card => (
+              <div
+                key={card.label}
+                className="group rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 transition-colors hover:border-white/[0.12]"
+              >
+                <div className="flex items-start justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">{card.label}</p>
+                  <card.icon size={15} strokeWidth={1.75} className="text-white/25 transition-colors group-hover:text-white/40" />
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <span className={`h-1.5 w-1.5 rounded-full ${card.ok ? 'bg-emerald-400' : 'bg-white/25'}`} />
+                  <p className="text-lg font-medium tracking-tight">{card.value}</p>
+                </div>
+                <p className="mt-2 text-xs text-white/35">{card.meta}</p>
               </div>
-            </div>
+            ))}
+          </section>
 
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">🎓 Trained For</h3>
-              <div className="space-y-2">
-                {aiCapabilities.trainedFor.map((training, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <span className="text-blue-400">🎯</span>
-                    <span className="text-gray-200">{training}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="text-center">
-              <div className="text-2xl mb-2">⚡</div>
-              <h4 className="font-semibold text-white">Response Time</h4>
-              <p className="text-green-300">{aiCapabilities.responseTime}</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-2">🌍</div>
-              <h4 className="font-semibold text-white">Languages</h4>
-              <p className="text-blue-300">{aiCapabilities.languages.join(', ')}</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-2">🏢</div>
-              <h4 className="font-semibold text-white">Provider</h4>
-              <p className="text-purple-300">{aiCapabilities.provider}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Display */}
-        {systemStatus.lastError && (
-          <div className="glass-panel p-4 mb-8 border-red-500/50">
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">⚠️</span>
+          {systemStatus.lastError && (
+            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-rose-500/20 bg-rose-500/[0.06] p-4">
+              <AlertTriangle size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-rose-300" />
               <div>
-                <h3 className="text-lg font-semibold text-red-300">System Error</h3>
-                <p className="text-red-200">{systemStatus.lastError}</p>
+                <p className="text-sm font-medium text-rose-200">System error</p>
+                <p className="mt-1 text-xs text-rose-200/70">{systemStatus.lastError}</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Mode Selection */}
-        <div className="glass-panel p-8">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Choose Your Interaction Mode</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <button
-              onClick={() => setCurrentMode('chat')}
-              className="group p-8 bg-gradient-to-br from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/30 hover:border-purple-400/50 rounded-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">💬</div>
-              <h3 className="text-2xl font-bold text-white mb-3">Chat Mode</h3>
-              <p className="text-gray-300 mb-4">Type your messages and get instant AI responses</p>
-              <div className="flex items-center justify-center space-x-2 text-sm text-blue-300">
-                <span>✨ Fast responses</span>
-                <span>•</span>
-                <span>📝 Text-based</span>
+          {/* Capabilities */}
+          <section className="mb-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-8">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+              <div>
+                <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">Core capabilities</p>
+                <ul className="space-y-3">
+                  {aiCapabilities.capabilities.map((capability, index) => (
+                    <li key={index} className="flex items-center gap-3 text-sm text-white/75">
+                      <Check size={14} strokeWidth={2.25} className="shrink-0 text-emerald-400/80" />
+                      {capability}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </button>
 
-            <button
-              onClick={() => setCurrentMode('voice')}
-              disabled={!systemStatus.audioEnabled}
-              className="group p-8 bg-gradient-to-br from-green-600/20 to-teal-600/20 hover:from-green-600/30 hover:to-teal-600/30 border border-green-500/30 hover:border-green-400/50 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">🎤</div>
-              <h3 className="text-2xl font-bold text-white mb-3">Voice Mode</h3>
-              <p className="text-gray-300 mb-4">Speak naturally and hear AI responses</p>
-              <div className="flex items-center justify-center space-x-2 text-sm text-green-300">
-                <span>🎙️ Speech-to-Text</span>
-                <span>•</span>
-                <span>🔊 Text-to-Speech</span>
+              <div>
+                <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">Trained for</p>
+                <ul className="space-y-3">
+                  {aiCapabilities.trainedFor.map((training, index) => (
+                    <li key={index} className="flex items-center gap-3 text-sm text-white/75">
+                      <span className="h-1 w-1 shrink-0 rounded-full bg-indigo-400/70" />
+                      {training}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              {!systemStatus.audioEnabled && (
-                <p className="text-red-300 text-sm mt-2">Audio system not available</p>
-              )}
-            </button>
+            </div>
 
-            <button
-              onClick={() => setCurrentMode('calendar')}
-              className="group p-8 bg-gradient-to-br from-orange-600/20 to-red-600/20 hover:from-orange-600/30 hover:to-red-600/30 border border-orange-500/30 hover:border-orange-400/50 rounded-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">📅</div>
-              <h3 className="text-2xl font-bold text-white mb-3">Calendar</h3>
-              <p className="text-gray-300 mb-4">View bookings and Google Calendar integration</p>
-              <div className="flex items-center justify-center space-x-2 text-sm text-orange-300">
-                <span>📋 Bookings</span>
-                <span>•</span>
-                <span>🔗 Google Sync</span>
-              </div>
-            </button>
-          </div>
+            <div className="mt-10 grid grid-cols-1 gap-6 border-t border-white/[0.06] pt-7 md:grid-cols-3">
+              {footprint.map(item => (
+                <div key={item.label} className="flex items-center gap-3">
+                  <item.icon size={15} strokeWidth={1.75} className="shrink-0 text-white/25" />
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">{item.label}</p>
+                    <p className="mt-1 text-sm text-white/80">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-          <div className="text-center mt-6">
+          {/* Mode selection */}
+          <section className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-8">
+            <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">Choose a mode</p>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {modes.map(mode => (
+                <button
+                  key={mode.id}
+                  onClick={() => setCurrentMode(mode.id)}
+                  disabled={mode.disabled}
+                  className="group rounded-xl border border-white/[0.07] bg-white/[0.02] p-6 text-left transition-colors hover:border-indigo-400/30 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-white/[0.07] disabled:hover:bg-white/[0.02]"
+                >
+                  <mode.icon size={18} strokeWidth={1.75} className="text-white/40 transition-colors group-hover:text-indigo-300" />
+                  <h3 className="mt-4 text-base font-medium tracking-tight">{mode.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-white/45">{mode.copy}</p>
+                  <p className="mt-4 text-[11px] uppercase tracking-[0.1em] text-white/25">
+                    {mode.disabled ? 'Audio unavailable' : mode.meta}
+                  </p>
+                </button>
+              ))}
+            </div>
+
             <button
               onClick={checkSystemHealth}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-4 py-2 text-xs font-medium text-white/55 transition-colors hover:border-white/15 hover:text-white/80"
             >
-              🔄 Refresh System Status
+              <RotateCw size={13} strokeWidth={2} />
+              Refresh status
             </button>
-          </div>
+          </section>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
 
   // Render chat interface
   const renderChatInterface = () => (
